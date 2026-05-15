@@ -1,4 +1,8 @@
+from leafnode import LeafNode, text_node_to_html_node
+from split_nodes import text_to_textnodes
+import re
 from htmlnode import HTMLNode
+from blocks import BlockType
 
 class ParentNode(HTMLNode):
     def __init__(self, tag: str, children: list[HTMLNode], props: dict | None = None):
@@ -32,3 +36,38 @@ class ParentNode(HTMLNode):
         for key, value in self.props.items():
             props_html += f' {key}="{value}"'
         return props_html
+
+def add_leaves(text: str):
+    nodes = text_to_textnodes(text)
+    children = []
+    for node in nodes:
+        children.append(text_node_to_html_node(node))
+    return children
+
+def block_type_to_html_node(block_type: BlockType, block: str):
+    if block_type == BlockType.PARAGRAPH:
+        block = " ".join(block.split("\n"))
+        return ParentNode("p", add_leaves(block))
+    elif block_type == BlockType.HEADING:
+        level = len(re.match("^#{1,6}", block).group())
+        return ParentNode(f"h{level}", add_leaves(block[level+1:]))
+    elif block_type == BlockType.UNORDERED_LIST:
+        lines = block.split('\n')
+        li_nodes = []
+        for line in lines:
+            li_nodes.append(ParentNode("li", add_leaves(line[2:])))
+        return ParentNode("ul", li_nodes)
+    elif block_type == BlockType.ORDERED_LIST:
+        lines = block.split('\n')
+        li_nodes = []
+        for line in lines:
+            li_nodes.append(ParentNode("li", add_leaves(line[3:])))
+        return ParentNode("ol", li_nodes)
+    elif block_type == BlockType.QUOTE:
+        lines = block.split('\n')
+        quote_nodes = []
+        for line in lines:
+            quote_nodes.extend(add_leaves(line[2:]))
+        return ParentNode("blockquote", quote_nodes)
+    elif block_type == BlockType.CODE:
+        return ParentNode("pre", [LeafNode("code", block[3:-3])])

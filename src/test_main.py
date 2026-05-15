@@ -1,48 +1,46 @@
 import unittest
-from main import text_node_to_html_node
 
-from textnode import TextNode, TextNodeType
+from main import markdown_to_html_node
 
-class TestTextNodeToHtmlNode(unittest.TestCase):
-    def test_text(self):
-        node = TextNode("This is a text node", TextNodeType.TEXT)
-        html_node = text_node_to_html_node(node)
-        self.assertEqual(html_node.tag, None)
-        self.assertEqual(html_node.value, "This is a text node")
+class TestMarkdown(unittest.TestCase):
+    def test_markdown_to_html_node(self):
+        markdown = "# This is a heading\n\nThis is a paragraph"
+        html_node = markdown_to_html_node(markdown)
+        self.assertEqual(html_node.tag, "div")
+        self.assertEqual(html_node.children[0].tag, "h1")
+        self.assertEqual(html_node.children[0].children[0].value, "This is a heading")
+        self.assertEqual(html_node.children[1].tag, "p")
+        self.assertEqual(html_node.children[1].children[0].value, "This is a paragraph")
     
-    def test_bold(self):
-        node = TextNode("This is a bold node", TextNodeType.BOLD)
-        html_node = text_node_to_html_node(node)
-        self.assertEqual(html_node.tag, "b")
-        self.assertEqual(html_node.value, "This is a bold node")
+    def test_paragraphs(self):
+        md = """
+This is **bolded** paragraph
+text in a p
+tag here
 
-    def test_italic(self):
-        node = TextNode("This is an italic node", TextNodeType.ITALIC)
-        html_node = text_node_to_html_node(node)
-        self.assertEqual(html_node.tag, "i")
-        self.assertEqual(html_node.value, "This is an italic node")
+This is another paragraph with _italic_ text and `code` here
 
-    def test_code(self):
-        node = TextNode("This is a code node", TextNodeType.CODE)
-        html_node = text_node_to_html_node(node)
-        self.assertEqual(html_node.tag, "code")
-        self.assertEqual(html_node.value, "This is a code node")
+"""
 
-    def test_link(self):
-        node = TextNode("This is a link node", TextNodeType.LINK, "https://www.boot.dev")
-        html_node = text_node_to_html_node(node)
-        self.assertEqual(html_node.tag, "a")
-        self.assertEqual(html_node.props["href"], "https://www.boot.dev")
-        self.assertEqual(html_node.value, "This is a link node")
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><p>This is <b>bolded</b> paragraph text in a p tag here</p><p>This is another paragraph with <i>italic</i> text and <code>code</code> here</p></div>",
+        )
 
-    def test_image(self):
-        node = TextNode("This is an image node", TextNodeType.IMAGE, "https://www.boot.dev")
-        html_node = text_node_to_html_node(node)
-        self.assertEqual(html_node.tag, "img")
-        self.assertEqual(html_node.props["src"], "https://www.boot.dev")
-        self.assertEqual(html_node.props["alt"], "This is an image node")
+    def test_codeblock(self):
+        md = """
+```
+This is text that _should_ remain
+the **same** even with inline stuff
+```
+"""
+
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        self.assertEqual(
+            html,
+            "<div><pre><code>\nThis is text that _should_ remain\nthe **same** even with inline stuff\n</code></pre></div>",
+        )
     
-    def test_invalid_text_node_type(self):
-        node = TextNode("This is an invalid text node type", "invalid")
-        with self.assertRaises(ValueError):
-            text_node_to_html_node(node)

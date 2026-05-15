@@ -1,23 +1,15 @@
+from blocks import markdown_to_blocks, block_to_block_type
+from parentnode import ParentNode, block_type_to_html_node
 from textnode import TextNode, TextNodeType
-from htmlnode import HTMLNode
-from leafnode import LeafNode
 
 
-def text_node_to_html_node(text_node: TextNode) -> HTMLNode:
-    if text_node.type == TextNodeType.TEXT:
-        return LeafNode(None, text_node.text)
-    elif text_node.type == TextNodeType.BOLD:
-        return LeafNode("b", text_node.text)
-    elif text_node.type == TextNodeType.ITALIC:
-        return LeafNode("i", text_node.text)
-    elif text_node.type == TextNodeType.CODE:
-        return LeafNode("code", text_node.text)
-    elif text_node.type == TextNodeType.LINK:
-        return LeafNode("a", text_node.text, {"href": text_node.url})
-    elif text_node.type == TextNodeType.IMAGE:
-        return LeafNode("img", None, {"src": text_node.url, "alt": text_node.text})
-    else:
-        raise ValueError(f"Invalid text node type: {text_node.type}")
+def markdown_to_html_node(markdown):
+    blocks = markdown_to_blocks(markdown)
+    html_nodes = []
+    for block in blocks:
+        block_type = block_to_block_type(block)
+        html_nodes.append(block_type_to_html_node(block_type, block))
+    return ParentNode("div", html_nodes)
 
 
 def main():
