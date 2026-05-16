@@ -18,7 +18,7 @@ class LeafNode(HTMLNode):
     
     def to_html(self):
         if self.value is None:
-            raise ValueError("LeafNode must have a value")
+            raise ValueError(f"LeafNode must have a value. Node: {self}")
         if self.tag is None:
             return self.value
         else:
@@ -44,6 +44,6 @@ def text_node_to_html_node(text_node: TextNode) -> HTMLNode:
     elif text_node.type == TextNodeType.LINK:
         return LeafNode("a", text_node.text, {"href": text_node.url})
     elif text_node.type == TextNodeType.IMAGE:
-        return LeafNode("img", None, {"src": text_node.url, "alt": text_node.text})
+        return LeafNode("img", text_node.text, {"src": text_node.url, "alt": text_node.text})
     else:
         raise ValueError(f"Invalid text node type: {text_node.type}")

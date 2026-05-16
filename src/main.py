@@ -1,3 +1,5 @@
+import genericpath
+from extract import extract_title
 from blocks import markdown_to_blocks, block_to_block_type
 from parentnode import ParentNode, block_type_to_html_node
 from textnode import TextNode, TextNodeType
@@ -22,16 +24,42 @@ def copy_static_files():
     if os.path.exists("static"):
         shutil.copytree("static", "public")
 
+def generate_page(from_path, template_path, dest_path):
+    print(f"Generating page from {from_path} to {dest_path}")
+    with open(from_path, "r") as f:
+        markdown = f.read()
+    with open(template_path, "r") as f:
+        template = f.read()
+
+    html_node = markdown_to_html_node(markdown)
+    print("HTML NODE: ", html_node)
+    html_content = html_node.to_html()
+
+    title = extract_title(markdown)
+    template = template.replace("{{ Title }}", title)
+    template = template.replace("{{ Content }}", html_content)
+
+    os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+    with open(dest_path, "w") as f:
+        f.write(template)
+
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+    markdown_extensions = [".md"]
+    
+    for filename in os.listdir(dir_path_content):
+        from_path = os.path.join(dir_path_content, filename)
+        if os.path.isdir(from_path):
+            generate_pages_recursive(from_path, template_path, os.path.join(dest_dir_path, filename))
+        elif filename.endswith(tuple(markdown_extensions)):
+            dest_path = os.path.join(dest_dir_path, filename[:-3] + ".html")
+            generate_page(from_path, template_path, dest_path)
 
 def main():
     delete_public()
     copy_static_files()
-    return """
-    Scan content/
-    Find all markdown files
-    Convert each markdown file to an html file
-    Create a public/ folder for all the html files
-    """
+
+    generate_pages_recursive("content", "template.html", "public")
+    return "Generating static files complete!"
 
 if __name__ == "__main__":
     print(main())

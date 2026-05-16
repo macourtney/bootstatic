@@ -14,3 +14,11 @@ def find_all_markdown_images(text):
 
 def find_all_markdown_links(text):
     return re.finditer(link_regex, text)
+
+def extract_title(markdown):
+    title_regex = r"(^|\n)# (.*?)(\n|$)"
+    title = re.search(title_regex, markdown, flags=re.MULTILINE)
+    if title:
+        return title.group(2)
+    else:
+        raise ValueError("No title found in markdown file.")

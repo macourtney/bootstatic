@@ -1,6 +1,5 @@
 import unittest
-
-from extract import extract_markdown_images, extract_markdown_links
+from extract import extract_title, extract_markdown_images, extract_markdown_links
 
 class TestExtractMarkdownImages(unittest.TestCase):
     def test_extract_markdown_images(self):
@@ -53,3 +52,39 @@ class TestExtractMarkdownLinks(unittest.TestCase):
         text = "This is a text node"
         expected = []
         self.assertEqual(extract_markdown_links(text), expected)
+
+class TestExtractTitle(unittest.TestCase):
+    def test_extract_title(self):
+        text = "# Title"
+        expected = "Title"
+        self.assertEqual(extract_title(text), expected)
+    
+    def test_extract_title_with_spaces(self):
+        text = "# Title with spaces"
+        expected = "Title with spaces"
+        self.assertEqual(extract_title(text), expected)
+    
+    def test_extract_title_with_special_chars(self):
+        text = "# Title!@#$"
+        expected = "Title!@#$"
+        self.assertEqual(extract_title(text), expected)
+    
+    def test_extract_title_with_leading_lines(self):
+        text = "This is some initial text\n# Title\nMore text\n"
+        expected = "Title"
+        self.assertEqual(extract_title(text), expected)
+    
+    def test_extract_title_with_multiple_lines(self):
+        text = "This is some initial text\n# Title\nMore text\n# Title2\nMore text\n"
+        expected = "Title"
+        self.assertEqual(extract_title(text), expected)
+    
+    def test_extract_title_with_multiple_titles(self):
+        text = "This is some initial text\n## Title1\nMore text\n# Title2\nMore text\n"
+        expected = "Title2"
+        self.assertEqual(extract_title(text), expected)
+
+    def test_extract_title_with_no_title(self):
+        text = "This is a text node"
+        with self.assertRaises(ValueError):
+            extract_title(text)
